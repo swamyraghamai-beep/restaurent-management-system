@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Restaurant Food Menu</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f8f0e7;
+            font-family: Arial, sans-serif;
+            color: #49301f;
+        }
+
+        .topbar {
+            background: #633b24;
+            color: white;
+            padding: 17px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar h2 {
+            margin: 0;
+        }
+
+        .topbar a {
+            color: white;
+            text-decoration: none;
+            background: #a65d2e;
+            padding: 10px 18px;
+            border-radius: 7px;
+        }
+
+        .topbar a:hover {
+            background: #c4773e;
+        }
+
+        .page-container {
+            width: 92%;
+            max-width: 1250px;
+            margin: 25px auto;
+        }
+
+        .page-title {
+            text-align: center;
+            color: #87451f;
+            margin: 28px 0;
+        }
+
+        .message {
+            max-width: 700px;
+            margin: 15px auto;
+            padding: 13px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success-message {
+            background: #e4f5e7;
+            color: #216b35;
+        }
+
+        .error-message {
+            background: #ffe5e5;
+            color: #a00000;
+        }
+
+        .menu-form {
+            max-width: 650px;
+            margin: 20px auto 45px;
+            padding: 28px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.10);
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #633b24;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d7c5b5;
+            border-radius: 7px;
+            background: #fffdfb;
+            font-size: 15px;
+        }
+
+        .form-group textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .menu-form button {
+            width: 100%;
+            padding: 14px;
+            background: #8b4513;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .menu-form button:hover {
+            background: #63300d;
+        }
+
+        .image-note {
+            background: #fff4e8;
+            border-left: 4px solid #c4773e;
+            padding: 12px;
+            border-radius: 6px;
+            color: #71452b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .food-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(auto-fit, minmax(235px, 1fr));
+            gap: 24px;
+            margin-top: 25px;
+        }
+
+        .food-card {
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .food-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.16);
+        }
+
+        .food-image {
+            width: 100%;
+            height: 210px;
+            display: block;
+            object-fit: cover;
+            background: #eee2d5;
+        }
+
+        .food-placeholder {
+            width: 100%;
+            height: 210px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 18px;
+            background: #eee2d5;
+            color: #805333;
+        }
+
+        .food-placeholder .food-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .food-card-content {
+            padding: 18px;
+        }
+
+        .food-card-content h3 {
+            color: #80451f;
+            margin: 0 0 12px;
+            font-size: 21px;
+            text-transform: capitalize;
+        }
+
+        .food-card-content p {
+            margin: 9px 0;
+            line-height: 1.5;
+        }
+
+        .food-price {
+            color: #8b4513;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .food-status {
+            font-weight: bold;
+            margin-top: 13px;
+        }
+
+        .available {
+            color: #218838;
+        }
+
+        .unavailable {
+            color: #c62828;
+        }
+
+        .empty-menu {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin: 35px 0;
+        }
+
+        .back-link a {
+            color: #87451f;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+
+            .page-container {
+                width: 94%;
+            }
+
+            .menu-form {
+                padding: 19px;
+            }
+
+            .food-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <h2>Restaurant Management System</h2>
+
+    <a href="{{ url_for('logout') }}">
+        Logout
+    </a>
+
+</header>
+
+
+<div class="page-container">
+
+    <h1 class="page-title">
+        Our Food Menu
+    </h1>
+
+
+    {% if message %}
+
+        <div class="message success-message">
+            {{ message }}
+        </div>
+
+    {% endif %}
+
+
+    {% if error %}
+
+        <div class="message error-message">
+            {{ error }}
+        </div>
+
+    {% endif %}
+
+
+    <h2 class="page-title">
+        Add New Food Item
+    </h2>
+
+
+    <form class="menu-form"
+          method="POST"
+          action="{{ url_for('menu') }}">
+
+        <div class="image-note">
+
+            <strong>Automatic Food Photographs</strong>
+
+            <br>
+
+            Add the food name and our system will search for a
+            matching photograph automatically.
+
+            If no suitable photo is found, you can upload one
+            from your computer.
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Food Name</label>
+
+            <input type="text"
+                   name="item_name"
+                   placeholder="Example: Chicken Biryani"
+                   required>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Category</label>
+
+            <select name="category_id" required>
+
+                <option value="">
+                    Select Category
+                </option>
+
+                {% for category in categories %}
+
+                    <option value="{{ category[0] }}">
+                        {{ category[1] }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Description</label>
+
+            <textarea name="description"
+                      placeholder="Describe the food item"></textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Price (₹)</label>
+
+            <input type="number"
+                   name="price"
+                   min="0.01"
+                   step="0.01"
+                   placeholder="Enter price"
+                   required>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>Availability</label>
+
+            <select name="available">
+
+                <option value="1">
+                    Available
+                </option>
+
+                <option value="0">
+                    Not Available
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <button type="submit">
+            Add Food Item
+        </button>
+
+    </form>
+
+
+    <h2 class="page-title">
+        Available Food Items
+    </h2>
+
+
+    <!-- REFRESH ALL FOOD PHOTOS -->
+
+    <form method="POST"
+          action="{{ url_for('refresh_food_images') }}"
+          style="max-width:650px;margin:0 auto 22px;text-align:center;">
+
+        <button type="submit"
+                style="
+                    background:#8b4513;
+                    color:white;
+                    border:0;
+                    border-radius:8px;
+                    padding:12px 22px;
+                    font-weight:bold;
+                    cursor:pointer;
+                "
+                onclick="return confirm(
+                    'Search for fresh matching photographs for all menu items?'
+                );">
+
+            Refresh All Food Photos
+
+        </button>
+
+        <p style="font-size:13px;color:#71452b;">
+
+            Searches Wikimedia Commons.
+            If no suitable image is found, use Add Photo.
+
+        </p>
+
+    </form>
+
+
+    <div class="food-grid">
+
+        {% for item in menu_items %}
+
+
+        <div class="food-card">
+
+
+            {% if item[6] %}
+
+
+                <img
+                    class="food-image"
+                    src="{{ url_for(
+                        'static',
+                        filename='images/food/' + item[6]
+                    ) }}"
+                    alt="{{ item[1] }}"
+                    loading="lazy"
+                    onerror="
+                        this.style.display='none';
+                        this.nextElementSibling.style.display='flex';
+                    ">
+
+
+                <div class="food-placeholder"
+                     style="display:none;">
+
+                    <div class="food-icon">
+                        🍽️
+                    </div>
+
+                    <strong>
+                        {{ item[1] }}
+                    </strong>
+
+                    <span>
+                        Photograph unavailable
+                    </span>
+
+                </div>
+
+
+                {% set credit = image_credits.get(item[6]) if image_credits and item[6] else none %}
+
+                {% if credit and credit.get('source_url') %}
+
+                    <div style="
+                        padding:6px 10px;
+                        font-size:11px;
+                        color:#6b5545;
+                    ">
+
+                        Photo:
+
+                        <a href="{{ credit.get('source_url') }}"
+                           target="_blank"
+                           rel="noopener">
+
+                            {{ credit.get('artist') or 'Wikimedia Commons' }}
+
+                        </a>
+
+                        {% if credit.get('license') %}
+
+                            · {{ credit.get('license') }}
+
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
+
+            {% else %}
+
+
+                <div class="food-placeholder">
+
+                    <div class="food-icon">
+                        🍽️
+                    </div>
+
+                    <strong>
+                        {{ item[1] }}
+                    </strong>
+
+                    <span>
+                        Photograph not available
+                    </span>
+
+                </div>
+
+
+            {% endif %}
+
+
+            <div class="food-card-content">
+
+                <h3>
+                    {{ item[1] }}
+                </h3>
+
+
+                <p>
+
+                    <strong>Category:</strong>
+
+                    {{ item[2] or 'Other' }}
+
+                </p>
+
+
+                <p>
+                    {{ item[3] or 'Freshly prepared food.' }}
+                </p>
+
+
+                <p class="food-price">
+
+                    ₹{{ "%.2f"|format(item[4]|float) }}
+
+                </p>
+
+
+                <p class="food-status">
+
+                    {% if item[5] %}
+
+                        <span class="available">
+                            ● Available
+                        </span>
+
+                    {% else %}
+
+                        <span class="unavailable">
+                            ● Not Available
+                        </span>
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <!-- ADD OR CHANGE PHOTO -->
+
+            <div style="padding:0 18px 18px;">
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'upload_food_image',
+                        item_id=item[0]
+                    ) }}"
+                    enctype="multipart/form-data">
+
+
+                    <label
+                        for="food-image-{{ item[0] }}"
+                        style="
+                            display:block;
+                            background:#8b4513;
+                            color:white;
+                            padding:11px;
+                            text-align:center;
+                            border-radius:7px;
+                            cursor:pointer;
+                            font-weight:bold;
+                        ">
+
+                        {% if item[6] %}
+
+                            Change Photo
+
+                        {% else %}
+
+                            Add Photo
+
+                        {% endif %}
+
+                    </label>
+
+
+                    <input
+                        type="file"
+                        id="food-image-{{ item[0] }}"
+                        name="food_image"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        required
+                        style="display:none;"
+                        onchange="this.form.submit()">
+
+                </form>
+
+            </div>
+
+
+        </div>
+
+
+        {% else %}
+
+
+            <div class="empty-menu">
+
+                <h3>
+                    No food items added yet.
+                </h3>
+
+                <p>
+                    Add your first food item using the form above.
+                </p>
+
+            </div>
+
+
+        {% endfor %}
+
+    </div>
+
+
+    <div class="back-link">
+
+        <a href="{{ url_for('dashboard') }}">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

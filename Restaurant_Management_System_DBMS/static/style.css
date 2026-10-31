@@ -1,0 +1,346 @@
+
+/* =================================
+   RESTAURANT MANAGEMENT SYSTEM
+   COMMON WEBSITE DESIGN
+================================= */
+
+:root {
+    --brown: #70401f;
+    --dark-brown: #432615;
+    --orange: #c17a36;
+    --cream: #fff8ef;
+    --light-cream: #f5e9da;
+    --white: #ffffff;
+    --text: #382719;
+    --shadow: 0 8px 28px rgba(50, 30, 15, 0.16);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text);
+
+    background:
+        linear-gradient(rgba(35, 20, 10, 0.55),
+                        rgba(35, 20, 10, 0.62)),
+        url("https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1800")
+        center/cover fixed no-repeat;
+}
+
+a {
+    color: var(--brown);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--orange);
+}
+
+/* LOGIN AND REGISTER */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 850px;
+    min-height: 540px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--cream);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.auth-image {
+    min-height: 540px;
+    background:
+        linear-gradient(rgba(45, 23, 10, 0.2),
+                        rgba(45, 23, 10, 0.55)),
+        url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900")
+        center/cover no-repeat;
+    display: flex;
+    align-items: flex-end;
+    padding: 35px;
+    color: white;
+}
+
+.auth-image h2 {
+    font-size: 30px;
+    line-height: 1.3;
+}
+
+.auth-form {
+    padding: 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.auth-form h1 {
+    color: var(--brown);
+    text-align: center;
+    margin: 0 0 8px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    color: #806b58;
+    margin-bottom: 20px;
+}
+
+.auth-form label {
+    display: block;
+    margin: 12px 0 6px;
+    font-weight: bold;
+    color: var(--dark-brown);
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d8c5b2;
+    border-radius: 7px;
+    background: white;
+    font-size: 15px;
+}
+
+.auth-form input:focus {
+    outline: 2px solid var(--orange);
+    border-color: transparent;
+}
+
+.primary-btn,
+button {
+    background: var(--brown);
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.primary-btn {
+    width: 100%;
+    margin-top: 22px;
+}
+
+.primary-btn:hover,
+button:hover {
+    background: var(--orange);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.error-message {
+    color: #b42318;
+    background: #ffe8e6;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+.success-message {
+    color: #176b36;
+    background: #e5f7e9;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+/* COMMON PAGE CONTAINER */
+
+.page-container {
+    width: min(1150px, 94%);
+    margin: 35px auto;
+    padding: 28px;
+    background: rgba(255, 248, 239, 0.97);
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+}
+
+.page-title {
+    color: var(--brown);
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* NAVIGATION */
+
+.topbar {
+    background: var(--dark-brown);
+    color: white;
+    padding: 17px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.topbar a {
+    color: white;
+    margin: 0 8px;
+}
+
+/* FORMS */
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #d5c1ae;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--orange);
+}
+
+/* TABLES */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+}
+
+th {
+    background: var(--brown);
+    color: white;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #e5d8ca;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background: #fff7ee;
+}
+
+/* FOOD MENU */
+
+.food-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+}
+
+.food-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.food-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.food-card-content {
+    padding: 15px;
+}
+
+.food-card h3 {
+    color: var(--brown);
+}
+
+/* DASHBOARD CARDS */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.dashboard-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.dashboard-card-content {
+    padding: 18px;
+}
+
+.dashboard-card a {
+    display: inline-block;
+    padding: 10px 18px;
+    background: var(--brown);
+    color: white;
+    border-radius: 6px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+    .auth-card {
+        max-width: 430px;
+        grid-template-columns: 1fr;
+    }
+
+    .auth-image {
+        min-height: 160px;
+        padding: 20px;
+    }
+
+    .auth-image h2 {
+        font-size: 23px;
+    }
+
+    .auth-form {
+        padding: 25px;
+    }
+
+    .page-container {
+        padding: 16px;
+    }
+
+    table {
+        font-size: 13px;
+    }
+}

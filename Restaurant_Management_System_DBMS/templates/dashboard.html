@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <h2>Restaurant Management System</h2>
+    <div>
+        Welcome, {{ session.get('full_name', 'Worker') }}
+        | {{ session.get('role', 'Staff') }}
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</header>
+
+<div class="page-container">
+
+    <h1 class="page-title">Welcome to Our Restaurant</h1>
+    <p style="text-align:center;">
+        Manage customers, delicious food, orders and payments in one place.
+    </p>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+            <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=700"
+                 alt="Restaurant customers">
+            <div class="dashboard-card-content">
+                <h2>Customers</h2>
+                <p>Add and manage restaurant customers.</p>
+                <a href="{{ url_for('customers') }}">Open</a>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=700"
+                 alt="Food menu">
+            <div class="dashboard-card-content">
+                <h2>Food Menu</h2>
+                <p>Add food items, prices and photographs.</p>
+                <a href="{{ url_for('menu') }}">Open</a>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=700"
+                 alt="Restaurant orders">
+            <div class="dashboard-card-content">
+                <h2>Orders</h2>
+                <p>Place orders and calculate customer bills.</p>
+                <a href="{{ url_for('orders') }}">Open</a>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=700"
+                 alt="Restaurant payments">
+            <div class="dashboard-card-content">
+                <h2>Payments</h2>
+                <p>Manage payments and payment history.</p>
+                <a href="{{ url_for('payments') }}">Open</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

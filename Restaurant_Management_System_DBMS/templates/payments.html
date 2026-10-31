@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Payments</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+    <h2>Restaurant Management System</h2>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</header>
+
+<div class="page-container">
+
+    <h1 class="page-title">Payment Management</h1>
+
+    {% if message %}
+        <p class="success-message">{{ message }}</p>
+    {% endif %}
+
+    <h2>Complete Customer Payment</h2>
+
+    <form method="POST" action="{{ url_for('payments') }}">
+
+        <div class="form-group">
+            <label>Select Order</label>
+            <select name="order_id" required>
+                <option value="">Select Order</option>
+                {% for order in unpaid_orders %}
+                    <option value="{{ order[0] }}">
+                        Order #{{ order[0] }} - Amount ₹{{ order[1] }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Payment Method</label>
+            <select name="payment_method" required>
+                <option value="">Select Payment Method</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+                <option value="Online">Online</option>
+            </select>
+        </div>
+
+        <button type="submit">Complete Payment</button>
+    </form>
+
+    <h2 class="page-title">Payment History</h2>
+
+    <table>
+        <tr>
+            <th>Payment ID</th>
+            <th>Order ID</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+
+        {% for payment in payment_history %}
+        <tr>
+            <td>{{ payment[0] }}</td>
+            <td>{{ payment[1] }}</td>
+            <td>₹{{ payment[2] }}</td>
+            <td>{{ payment[3] }}</td>
+            <td>{{ payment[4] }}</td>
+            <td>{{ payment[5] }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6">No payment history available.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p style="text-align:center; margin-top:25px;">
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </p>
+
+</div>
+</body>
+</html>

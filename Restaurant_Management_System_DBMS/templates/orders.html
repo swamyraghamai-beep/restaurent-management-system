@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Orders</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .food-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+            padding: 12px;
+            margin: 12px 0;
+            background: #fff8ef;
+            border: 1px solid #e5d8ca;
+            border-radius: 8px;
+        }
+        .food-row label { display: block; margin-bottom: 7px; font-weight: bold; }
+        .bill {
+            background: #fff4e8;
+            border: 1px solid #8b4513;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 20px;
+        }
+        .bill p { display: flex; justify-content: space-between; gap: 12px; }
+        .grand-total { border-top: 2px solid #8b4513; padding-top: 12px; font-size: 21px; font-weight: bold; color: #8b4513; }
+        .remove-button { background: #a83232; }
+        .add-button { margin-top: 12px; background: #b87936; }
+        @media(max-width:650px) {
+            .food-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <h2>Restaurant Management System</h2>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</header>
+
+<div class="page-container">
+
+    <h1 class="page-title">Restaurant Order Management</h1>
+
+    {% if message %}
+        <p class="success-message">{{ message }}</p>
+    {% endif %}
+
+    <form method="POST" id="orderForm">
+
+        <div class="form-group">
+            <label>Customer</label>
+            <select name="customer_id" required>
+                <option value="">Select Customer</option>
+                {% for customer in customers %}
+                    <option value="{{ customer[0] }}">{{ customer[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Restaurant Table</label>
+            <select name="table_id" id="table_id">
+                <option value="">Select Table</option>
+                {% for table in tables %}
+                    <option value="{{ table[0] }}">
+                        Table {{ table[1] }} - {{ table[3] }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Order Type</label>
+            <select name="order_type" id="order_type" required>
+                <option value="Dine-in">Dine-in</option>
+                <option value="Takeaway">Takeaway</option>
+                <option value="Delivery">Delivery</option>
+            </select>
+        </div>
+
+        <h2>Choose Food Items</h2>
+
+        <div id="food-container">
+            <div class="food-row">
+
+                <div>
+                    <label>Food Item</label>
+                    <select name="item_id[]" class="food-select" required>
+                        <option value="" data-price="0">Select Food</option>
+                        {% for item in menu_items %}
+                            <option value="{{ item[0] }}" data-price="{{ item[2] }}">
+                                {{ item[1] }} - ₹{{ item[2] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label>Quantity</label>
+                    <input type="number" name="quantity[]" class="quantity"
+                           min="1" value="1" required>
+                </div>
+
+                <button type="button" class="remove-button"
+                        onclick="removeFood(this)">Remove</button>
+            </div>
+        </div>
+
+        <button type="button" class="add-button" onclick="addFood()">
+            + Add Another Food Item
+        </button>
+
+        <div class="bill">
+            <h2>Bill Summary</h2>
+            <div id="bill-items">
+                <p>No food items selected.</p>
+            </div>
+            <p class="grand-total">
+                <span>Grand Total</span>
+                <strong id="grand-total">₹0.00</strong>
+            </p>
+        </div>
+
+        <button type="submit" style="width:100%; margin-top:20px;">
+            Place Complete Order
+        </button>
+
+    </form>
+
+    <h2 class="page-title">Recent Orders</h2>
+
+    <table>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer ID</th>
+            <th>Order Type</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for order in orders %}
+        <tr>
+            <td>{{ order[0] }}</td>
+            <td>{{ order[1] }}</td>
+            <td>{{ order[2] }}</td>
+            <td>{{ order[3] }}</td>
+            <td>
+                {% if order[3] != 'Completed' %}
+                <form method="POST"
+                      action="{{ url_for('complete_order', order_id=order[0]) }}">
+                    <button type="submit">Complete Order</button>
+                </form>
+                {% else %}
+                    Completed
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No orders found.</td></tr>
+        {% endfor %}
+    </table>
+
+    <p style="text-align:center; margin-top:25px;">
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </p>
+
+</div>
+
+<script>
+function calculateBill() {
+    let grandTotal = 0;
+    let html = "";
+
+    document.querySelectorAll(".food-row").forEach(row => {
+        const select = row.querySelector(".food-select");
+        const quantityInput = row.querySelector(".quantity");
+        const option = select.options[select.selectedIndex];
+        const price = Number(option.dataset.price || 0);
+        let quantity = parseInt(quantityInput.value) || 1;
+
+        if (quantity < 1) {
+            quantity = 1;
+            quantityInput.value = 1;
+        }
+
+        if (select.value) {
+            const total = price * quantity;
+            grandTotal += total;
+            html += `<p><span>${option.text.split(" - ₹")[0]} × ${quantity}</span>
+                     <strong>₹${total.toFixed(2)}</strong></p>`;
+        }
+    });
+
+    document.getElementById("bill-items").innerHTML =
+        html || "<p>No food items selected.</p>";
+
+    document.getElementById("grand-total").textContent =
+        "₹" + grandTotal.toFixed(2);
+}
+
+function addFood() {
+    const container = document.getElementById("food-container");
+    const row = container.querySelector(".food-row").cloneNode(true);
+    row.querySelector(".food-select").selectedIndex = 0;
+    row.querySelector(".quantity").value = 1;
+    container.appendChild(row);
+    calculateBill();
+}
+
+function removeFood(button) {
+    const rows = document.querySelectorAll(".food-row");
+    if (rows.length === 1) {
+        alert("At least one food item is required.");
+        return;
+    }
+    button.closest(".food-row").remove();
+    calculateBill();
+}
+
+document.addEventListener("input", event => {
+    if (event.target.classList.contains("quantity")) calculateBill();
+});
+
+document.addEventListener("change", event => {
+    if (event.target.classList.contains("food-select")) calculateBill();
+});
+
+document.getElementById("order_type").addEventListener("change", function() {
+    const table = document.getElementById("table_id");
+    table.required = this.value === "Dine-in";
+    if (this.value !== "Dine-in") table.value = "";
+});
+
+document.getElementById("orderForm").addEventListener("submit", function(event) {
+    const selected = [...document.querySelectorAll(".food-select")]
+        .some(select => select.value);
+    if (!selected) {
+        event.preventDefault();
+        alert("Please select at least one food item.");
+    }
+});
+
+calculateBill();
+</script>
+
+</body>
+</html>
