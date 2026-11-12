@@ -1,4 +1,4 @@
-USE RestaurantDB;
+USE restaurantdb;
 
 CREATE OR REPLACE VIEW vw_menu_with_category AS
 SELECT m.item_id, m.item_name, c.category_name, m.description, m.price, m.available

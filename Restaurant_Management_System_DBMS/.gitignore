@@ -1,28 +1,6 @@
-# Python virtual environment
-.venv/
-venv/
-env/
-
-# Python cache files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Environment variables and passwords
 .env
-.env.*
-!.env.example
-
-# Operating system files
-.DS_Store
-Thumbs.db
-
-# Log files
-*.log
-
-# IDE settings
+*.pem
+ca.pem
+.venv/
+__pycache__/
 .vscode/
-
-# Temporary files
-*.tmp
-*.bak

@@ -12,10 +12,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "yashu@2007")
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key-in-env")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 
@@ -23,15 +24,52 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 # DATABASE CONNECTION
 # =====================================================
 
+
+
 def get_db_connection():
-    """Connect using environment variables; defaults support local MySQL."""
-    return mysql.connector.connect(
-        host=os.environ.get("MYSQLHOST", "localhost"),
-        port=int(os.environ.get("MYSQLPORT", "3306")),
-        user=os.environ.get("MYSQLUSER", "root"),
-        password=os.environ.get("MYSQLPASSWORD", "yashu@2007"),
-        database=os.environ.get("MYSQLDATABASE", "restaurantdb")
-    )
+    """Connect to the Aiven MySQL database using values from .env / Render."""
+    required_vars = ["MYSQLHOST", "MYSQLUSER", "MYSQLPASSWORD"]
+
+    missing = [
+        name for name in required_vars
+        if not os.environ.get(name)
+    ]
+
+    if missing:
+        raise RuntimeError(
+            "Missing database environment variables: " + ", ".join(missing)
+        )
+
+    db_config = {
+        "host": os.environ["MYSQLHOST"].strip(),
+        "port": int(os.environ.get("MYSQLPORT", "13571")),
+        "user": os.environ["MYSQLUSER"].strip(),
+        "password": os.environ["MYSQLPASSWORD"],
+        "database": os.environ.get("MYSQLDATABASE", "restaurantdb").strip(),
+        "connection_timeout": 15,
+    }
+
+    # Locally use MYSQLSSLCA=ca.pem. On Render use
+    # MYSQLSSLCA=/etc/secrets/ca.pem.
+    ssl_ca = os.environ.get("MYSQLSSLCA", "").strip()
+
+    if ssl_ca:
+        if not os.path.isabs(ssl_ca):
+            ssl_ca = os.path.join(BASE_DIR, ssl_ca)
+
+        if not os.path.isfile(ssl_ca):
+            raise FileNotFoundError(
+                f"MySQL CA certificate was not found: {ssl_ca}"
+            )
+
+        db_config.update({
+            "ssl_ca": ssl_ca,
+            "ssl_verify_cert": True,
+            "ssl_verify_identity": True,
+        })
+
+    return mysql.connector.connect(**db_config)
+
 
 # =====================================================
 # FOOD PHOTOS
@@ -313,7 +351,7 @@ def customers():
             email = request.form.get("email")
 
             cursor.execute("""
-                INSERT INTO customers
+                INSERT INTO `Customers`
                 (customer_name, phone, email)
                 VALUES (%s, %s, %s)
             """, (name, phone, email))
@@ -321,7 +359,7 @@ def customers():
             db.commit()
 
         cursor.execute(
-            "SELECT * FROM customers"
+            "SELECT * FROM `Customers`"
         )
 
         customer_list = cursor.fetchall()
@@ -404,7 +442,7 @@ def menu():
             # CHECK CATEGORY
             cursor.execute("""
                 SELECT category_id
-                FROM categories
+                FROM `Categories`
                 WHERE category_id = %s
             """, (category_id,))
 
@@ -418,7 +456,7 @@ def menu():
 
             # INSERT FOOD ITEM
             cursor.execute("""
-                INSERT INTO menuitems
+                INSERT INTO `MenuItems`
                 (
                     item_name,
                     category_id,
@@ -456,7 +494,7 @@ def menu():
         # GET CATEGORIES
         cursor.execute("""
             SELECT category_id, category_name
-            FROM categories
+            FROM `Categories`
             ORDER BY category_name
         """)
 
@@ -472,8 +510,8 @@ def menu():
                 m.price,
                 m.available,
                 m.image_filename
-            FROM menuitems m
-            LEFT JOIN categories c
+            FROM `MenuItems` m
+            LEFT JOIN `Categories` c
                 ON m.category_id = c.category_id
             ORDER BY m.item_id DESC
         """)
@@ -492,7 +530,7 @@ def menu():
                 if filename:
 
                     cursor.execute("""
-                        UPDATE menuitems
+                        UPDATE `MenuItems`
                         SET image_filename = %s
                         WHERE item_id = %s
                           AND (
@@ -519,8 +557,8 @@ def menu():
                     m.price,
                     m.available,
                     m.image_filename
-                FROM menuitems m
-                LEFT JOIN categories c
+                FROM `MenuItems` m
+                LEFT JOIN `Categories` c
                     ON m.category_id = c.category_id
                 ORDER BY m.item_id DESC
             """)
@@ -549,7 +587,7 @@ def menu():
 
         cursor.execute("""
             SELECT category_id, category_name
-            FROM categories
+            FROM `Categories`
             ORDER BY category_name
         """)
 
@@ -564,8 +602,8 @@ def menu():
                 m.price,
                 m.available,
                 m.image_filename
-            FROM menuitems m
-            LEFT JOIN categories c
+            FROM `MenuItems` m
+            LEFT JOIN `Categories` c
                 ON m.category_id = c.category_id
             ORDER BY m.item_id DESC
         """)
@@ -658,7 +696,7 @@ def upload_food_image(item_id):
     try:
 
         cursor.execute(
-            "SELECT image_filename FROM menuitems WHERE item_id = %s",
+            "SELECT image_filename FROM `MenuItems` WHERE item_id = %s",
             (item_id,)
         )
 
@@ -670,7 +708,7 @@ def upload_food_image(item_id):
         image.save(image_path)
 
         cursor.execute("""
-            UPDATE menuitems
+            UPDATE `MenuItems`
             SET image_filename = %s
             WHERE item_id = %s
         """, (filename, item_id))
@@ -787,7 +825,7 @@ def orders():
 
                 # GET EMPLOYEE ID
                 cursor.execute(
-                    "SELECT MIN(employee_id) FROM employees"
+                    "SELECT MIN(employee_id) FROM `Employees`"
                 )
 
                 employee_result = cursor.fetchone()
@@ -804,7 +842,7 @@ def orders():
 
                     cursor.execute("""
                         SELECT item_name, price
-                        FROM menuitems
+                        FROM `MenuItems`
                         WHERE item_id = %s
                           AND available = TRUE
                     """, (item_id,))
@@ -824,7 +862,7 @@ def orders():
 
                 # CREATE ORDER
                 cursor.execute("""
-                    INSERT INTO orders
+                    INSERT INTO `Orders`
                     (
                         customer_id,
                         table_id,
@@ -847,7 +885,7 @@ def orders():
                 for item_id, quantity, price in order_items:
 
                     cursor.execute("""
-                        INSERT INTO orderdetails
+                        INSERT INTO `OrderDetails`
                         (
                             order_id,
                             item_id,
@@ -866,7 +904,7 @@ def orders():
                 if selected_table is not None:
 
                     cursor.execute("""
-                        UPDATE restauranttables
+                        UPDATE `RestaurantTables`
                         SET status = 'Occupied'
                         WHERE table_id = %s
                     """, (selected_table,))
@@ -886,7 +924,7 @@ def orders():
         # GET CUSTOMERS
         cursor.execute("""
             SELECT customer_id, customer_name
-            FROM customers
+            FROM `Customers`
             ORDER BY customer_id
         """)
 
@@ -895,7 +933,7 @@ def orders():
         # GET TABLES
         cursor.execute("""
             SELECT table_id, table_number, capacity, status
-            FROM restauranttables
+            FROM `RestaurantTables`
             ORDER BY table_number
         """)
 
@@ -904,7 +942,7 @@ def orders():
         # GET AVAILABLE FOOD
         cursor.execute("""
             SELECT item_id, item_name, price
-            FROM menuitems
+            FROM `MenuItems`
             WHERE available = TRUE
             ORDER BY item_name
         """)
@@ -914,7 +952,7 @@ def orders():
         # GET RECENT ORDERS
         cursor.execute("""
             SELECT order_id, customer_id, order_type, status
-            FROM orders
+            FROM `Orders`
             ORDER BY order_id DESC
         """)
 
@@ -957,7 +995,7 @@ def complete_order(order_id):
 
         cursor.execute("""
             SELECT table_id, order_type
-            FROM orders
+            FROM `Orders`
             WHERE order_id = %s
         """, (order_id,))
 
@@ -969,7 +1007,7 @@ def complete_order(order_id):
         table_id, order_type = order
 
         cursor.execute("""
-            UPDATE orders
+            UPDATE `Orders`
             SET status = 'Completed'
             WHERE order_id = %s
         """, (order_id,))
@@ -978,7 +1016,7 @@ def complete_order(order_id):
 
             cursor.execute("""
                 SELECT COUNT(*)
-                FROM orders
+                FROM `Orders`
                 WHERE table_id = %s
                   AND order_type = 'Dine-in'
                   AND status IN (
@@ -997,7 +1035,7 @@ def complete_order(order_id):
             if active_orders == 0:
 
                 cursor.execute("""
-                    UPDATE restauranttables
+                    UPDATE `RestaurantTables`
                     SET status = 'Available'
                     WHERE table_id = %s
                 """, (table_id,))
@@ -1070,7 +1108,7 @@ def payments():
                     SELECT COALESCE(
                         SUM(quantity * unit_price), 0
                     )
-                    FROM orderdetails
+                    FROM `OrderDetails`
                     WHERE order_id = %s
                 """, (order_id,))
 
@@ -1085,7 +1123,7 @@ def payments():
                     # CHECK EXISTING PAYMENT
                     cursor.execute("""
                         SELECT payment_id, payment_status
-                        FROM payments
+                        FROM `Payments`
                         WHERE order_id = %s
                     """, (order_id,))
 
@@ -1107,7 +1145,7 @@ def payments():
                         ):
 
                             cursor.execute("""
-                                UPDATE payments
+                                UPDATE `Payments`
                                 SET amount = %s,
                                     payment_method = %s,
                                     payment_status = 'Paid',
@@ -1137,7 +1175,7 @@ def payments():
                     else:
 
                         cursor.execute("""
-                            INSERT INTO payments
+                            INSERT INTO `Payments`
                             (
                                 order_id,
                                 amount,
@@ -1172,10 +1210,10 @@ def payments():
                 COALESCE(
                     SUM(od.quantity * od.unit_price), 0
                 )
-            FROM orders o
-            JOIN orderdetails od
+            FROM `Orders` o
+            JOIN `OrderDetails` od
                 ON o.order_id = od.order_id
-            LEFT JOIN payments p
+            LEFT JOIN `Payments` p
                 ON o.order_id = p.order_id
             WHERE p.payment_id IS NULL
                OR p.payment_status IN ('Pending', 'Failed')
@@ -1194,7 +1232,7 @@ def payments():
                 payment_method,
                 payment_status,
                 payment_date
-            FROM payments
+            FROM `Payments`
             ORDER BY payment_id DESC
         """)
 

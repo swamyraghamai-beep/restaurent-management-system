@@ -1,4 +1,4 @@
-USE RestaurantDB;
+USE restaurantdb;
 
 -- 1. Display the full food menu with category names.
 SELECT m.item_id, m.item_name, c.category_name, m.price, m.available

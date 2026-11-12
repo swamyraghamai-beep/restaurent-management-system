@@ -1,4 +1,4 @@
-USE RestaurantDB;
+USE restaurantdb;
 
 INSERT INTO Customers (customer_name, phone, email) VALUES
 ('Rahul Sharma','9876543210','rahul@example.com'),

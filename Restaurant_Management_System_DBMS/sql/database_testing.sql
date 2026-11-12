@@ -1,9 +1,9 @@
 USE restaurantdb;
 
-SELECT * FROM customers;
-SELECT * FROM menuitems;
-SELECT * FROM orders;
-SELECT * FROM payments;
+SELECT * FROM Customers;
+SELECT * FROM MenuItems;
+SELECT * FROM Orders;
+SELECT * FROM Payments;
 
 USE restaurantdb;
 

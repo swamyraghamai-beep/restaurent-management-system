@@ -1,7 +1,7 @@
 -- Restaurant Management System (DBMS Project)
 -- MySQL 8.0+
 CREATE DATABASE IF NOT EXISTS RestaurantDB;
-USE RestaurantDB;
+USE restaurantdb;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP VIEW IF EXISTS vw_order_bill;
